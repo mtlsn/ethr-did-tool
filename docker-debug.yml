@@ -1,0 +1,28 @@
+version: '3.3'
+
+services:
+
+  thedude:
+    env_file: .env.debug
+    image: postgres
+    restart: "no"
+    volumes:
+      - debugdata:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+
+  debugvault:
+    env_file: .env.debug
+    build: .
+    restart: "no"
+    ports:
+      - 3001:3001
+      - 9298:9298
+    depends_on:
+      - thedude
+    command: bin/debug.sh
+    volumes:
+      - ./build:/app/build
+
+volumes:
+    debugdata:

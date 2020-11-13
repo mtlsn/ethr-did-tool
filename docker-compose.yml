@@ -1,0 +1,10 @@
+version: '3.3'
+
+services:
+
+  productionvault:
+    env_file: .env
+    build: .
+    restart: always
+    ports:
+      - 3001:3001

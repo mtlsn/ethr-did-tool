@@ -1,0 +1,16 @@
+version: '3.3'
+
+services:
+
+  productionvault:
+    image: hellobloom/bloom-vault
+    ports:
+      - 3001:3001
+    deploy:
+      replicas: 2
+    secrets:
+      - env
+
+secrets:
+  env:
+    file: ./.env
