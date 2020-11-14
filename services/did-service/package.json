@@ -1,0 +1,26 @@
+{
+  "name": "did-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.js",
+  "scripts": {
+    "build": "babel src -d lib",
+    "exec": "npm run build && node lib/main.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "big-number": "^2.0.0",
+    "bignumber.js": "^9.0.1",
+    "did-resolver": "^2.1.1",
+    "ethjs-provider-signer": "^0.1.4",
+    "ethjs-signer": "^0.1.1",
+    "ethr-did": "^1.1.0",
+    "ethr-did-resolver": "^3.0.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.12.1",
+    "@babel/core": "^7.12.3",
+    "@babel/preset-env": "^7.12.1"
+  }
+}
