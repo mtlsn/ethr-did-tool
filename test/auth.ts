@@ -276,7 +276,7 @@ describe('Auth', async () => {
           userAccessToken = body.token
 
           signature = personalSign(userAccessToken, userPrivateKey)
-          console.log(signature)
+          
           response = await fetch(`${url}/auth/validate-token`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
