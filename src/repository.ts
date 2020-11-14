@@ -315,8 +315,10 @@ export default class Repo {
     const ethAddress = EthU.bufferToHex(
       recoverEthAddressFromPersonalRpcSig(token, signature)
     )
-
+    
     return this.transaction(async client => {
+      
+
       const result = await client.query(
         `
         update access_token set validated_at = now()

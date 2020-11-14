@@ -8,7 +8,7 @@ const sign = require('ethjs-signer').sign;
 const BN = require('bignumber.js');
 
 
-const infura_endpoint = "https://ropsten.infura.io/v3/a17d809755ec478e8e8d99cf19570c28";
+const infura_endpoint = "https://ropsten.infura.io/v3/91b0038d3b154f0a9b11212d29485594";
 
 const identity1 = "did:ethr:0xB4CFd481e4999ec986f483c4C7a68c5B88473D85";
 const identity2 = "did:ethr:0x28645c1F92754AA2f8CaDC6988006ed22Ec04470";
@@ -17,14 +17,15 @@ const privateKey2 = "0x36edbc98c8864176e75399dc53310385fb251d921711379b8e1eba1d8
 
 // we need to instantiate our own signing provider
 // takes the address and signing private key 
-function makeSigningHttpProvider(endpoint, address, key){
+function makeSigningHttpProvider(endpoint: string, address: string, key: string){
     const gasLimit = new BN('100000');
     const gasPrice = new BN('30000000000');
+    
     return new SignerProvider(endpoint, 
-        {signTransaction: (rawTx, cb) => cb(null, sign(Object.assign(rawTx,{gas: gasLimit, gasPrice: gasPrice}), key)),
-         accounts: (cb) => cb(null, [address])});}
+        {signTransaction: (rawTx: any, cb: any) => cb(null, sign(Object.assign(rawTx,{gas: gasLimit, gasPrice: gasPrice}), key)),
+         accounts: (cb: any) => cb(null, [address])});}
 
-function makeEthrDID(did, key) {
+export const makeEthrDID = (did: string, key: string) => {
     let address;
     [, , address] = did.split(":");
     return new EthrDID({address: address, 

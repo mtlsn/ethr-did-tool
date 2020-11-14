@@ -12,8 +12,13 @@ const EthrDID = require('ethr-did');
 const { Credentials, SimpleSigner } = require( 'uport-credentials')
 import { Resolver } from 'did-resolver';
 import { getResolver } from 'ethr-did-resolver';
+const DidRegistryContract = require('ethr-did-registry')
 
+const Web3 = require("web3");
+const ganache = require('ganache-cli')
 import Repo from '../repository'
+const makeEthrDID = require('../../services/did-service/src/main')
+
 import regularExpressions from '../regularExpressions'
 import {
   ModelValidator,
@@ -36,56 +41,27 @@ export const didRouter = (app: express.Application) => {
         // let networkId = 1 // Mainnet
         // let DidReg = web3.eth.contract(DidRegistryContract.abi)
         // return DidReg.at(DidRegistryContract.networks[networkId].address)
-        const ethrDid = new EthrDID({address: 'IdentityAddress', privateKey: 'yourPrivateKey'})
-        return ethrDid
+
+        const ethrDid = makeEthrDID.makeEthrDID('did:ethr:0xE971BA3568B5b73C6936588C56FACBfA193f6Bab', 'e36b2e5c2207c03aff7c160d8b313713a0fa1a36fd9596244ca50155449c7c79')
+        
+        const providerConfig = { rpcUrl: 'https://ropsten.infura.io/v3/91b0038d3b154f0a9b11212d29485594' } 
+        const didResolver = new Resolver(getResolver(providerConfig))
+
+        const doc = await didResolver.resolve(ethrDid.did)
+        return doc
       },
 
-      async (ethrDid) => {
+      async (didReg) => {
         return {
           status: 200,
           body: {
             message: 'Did successfully created and on-chain',
-            did: ethrDid
+            did: didReg
           },
         }
       }
     )
   )
-
-  app.post(
-    '/did/resolve',
-    ipRateLimited(20, 'create'),
-    apiOnly,
-    asyncHandler(
-      async () => {
-        // const DidRegistryContract = require('ethr-did-registry')
-
-        // let networkId = 1 // Mainnet
-        // let DidReg = web3.eth.contract(DidRegistryContract.abi)
-        // return DidReg.at(DidRegistryContract.networks[networkId].address)
-        const providerConfig = { rpcUrl: '' } // Address of the infura project id located at: https://infura.io/dashboard/ethereum/91b0038d3b154f0a9b11212d29485594/settings
-        const resolver = new Resolver(getResolver(providerConfig))
-
-        const credentials = new Credentials({
-            did: 'yourDidCreatedPreviously',
-            signer: SimpleSigner('YourPrivateKey'),
-            resolver
-        })
-        return credentials
-      },
-
-      async (credentials) => {
-        return {
-          status: 200,
-          body: {
-            message: 'Credentials for the did',
-            did: credentials
-          },
-        }
-      }
-    )
-  )
-}
 
 export const tokenRouter = (app: express.Application) => {
   app.post(
@@ -96,20 +72,26 @@ export const tokenRouter = (app: express.Application) => {
       async req => {
         const query = req.query as {did: string; initialize: boolean}
         const validator = new ModelValidator(query, {initialize: true})
-
+        
         return validator.validate({
           did: didValidator,
           initialize: (_name, value) => toBoolean(value),
+          
         })
       },
 
       async ({did, initialize}) => {
-        const token = await Repo.createAccessToken(did, initialize)
-
+        const token = await Repo.createAccessToken(did.toLowerCase(), true)
+        const signature = personalSign(
+          token,
+          '0xe36b2e5c2207c03aff7c160d8b313713a0fa1a36fd9596244ca50155449c7c79'
+        )
+        
         return {
           status: 200,
           body: {
             token: token,
+            signature: signature
           },
         }
       }
@@ -143,9 +125,11 @@ export const tokenRouter = (app: express.Application) => {
               const ethAddress = EthU.bufferToHex(
                 recoverEthAddressFromPersonalRpcSig(body.accessToken, value)
               )
-              if (ethAddress !== body.did.replace('did:ethr:', '')) {
+              
+              if (ethAddress !== body.did.replace('did:ethr:', '').toLowerCase()) {
                 throw new ClientFacingError('unauthorized', 401)
               }
+              console.log('erererererere')
               return value
             } catch (err) {
               console.log('validate-token signature validation error')
@@ -160,7 +144,8 @@ export const tokenRouter = (app: express.Application) => {
       },
       async ({accessToken, signature}) => {
         const expiresAt = await Repo.validateAccessToken(accessToken, signature)
-
+        console.log(expiresAt)
+        console.log('biiiiiiiùmùùùù')
         if (!expiresAt) {
           throw new ClientFacingError('unauthorized', 401)
         }

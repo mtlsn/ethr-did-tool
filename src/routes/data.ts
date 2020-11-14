@@ -17,6 +17,8 @@ import {
   isNotEmpty,
   recoverEthAddressFromPersonalRpcSig,
 } from '../utils'
+import { Resolver } from 'did-resolver';
+import { getResolver } from 'ethr-did-resolver';
 import * as EthU from 'ethereumjs-util'
 
 export const dataRouter = (app: express.Application) => {
@@ -29,11 +31,15 @@ export const dataRouter = (app: express.Application) => {
         Repo.getMe(did),
         Repo.getEncryptedIndexes(did),
       ])
-      const didResolveRes = await new EthereumDIDResolver().resolve(entity.did)
+      const providerConfig = { rpcUrl: 'https://ropsten.infura.io/v3/91b0038d3b154f0a9b11212d29485594' } 
+      const didResolver = new Resolver(getResolver(providerConfig))
+
+      const doc = await didResolver.resolve(did)
+
       return {
         status: 200,
         body: {
-          did: didResolveRes.didDocument,
+          did: doc,
           dataCount: entity.data_count,
           deletedCount: entity.deleted_count,
           cypherIndexes: cypherIndexes
