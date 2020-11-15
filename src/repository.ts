@@ -359,6 +359,26 @@ export default class Repo {
     return result.rows[0] as IEntity
   }
 
+  public static async fetchAdminToken(token: string) {
+    const result = await pool.query(
+      `
+      select e.did
+      from access_token at
+        join entities e on e.admin = true
+      where 1=1
+        and uuid = $1
+        and validated_at between now() - ($2 || ' seconds')::interval and now()
+        and e.blacklisted = false;
+    `,
+      [token, env.tokenExpirationSeconds()]
+    )
+
+    if (result.rowCount !== 1) {
+      return null
+    }
+    return result.rows[0] as IEntity
+  }
+
   public static async updateCallCount(ip: string, endpoint: string) {
     const result = await pool.query(
       `

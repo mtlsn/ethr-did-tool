@@ -71,6 +71,24 @@ export function authenticatedHandler<T>(
   ]
 }
 
+export function authenticatedAndAuthorizationThirdPartyHandler<T>(
+  validator: AuthenticatedRequestValidator<T>,
+  handler: (parameters: T & {entity: IEntity}) => Promise<IHandlerResult>
+) {
+  return [
+    authorizedPostToAdmin,
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+      try {
+        const parameters = await validator(req, res, next)
+        const result = await handler({...parameters, entity: req.entity})
+        res.status(result.status).json(result.body)
+      } catch (err) {
+        return next(err)
+      }
+    },
+  ]
+}
+
 export function adminOnlyHandler<T>(
   validator: RequestValidator<T>,
   handler: (parameters: T & {entity: IEntity}) => Promise<IHandlerResult>
@@ -165,6 +183,40 @@ export const apiOnly: RequestHandler = (req, res, next) => {
 }
 
 type AuthenticatedRequest = Request & {entity: IEntity}
+
+export const authorizedPostToAdmin: RequestHandler = async (
+  req: AuthenticatedRequest,
+  res,
+  next
+) => {
+  try {
+    const auth = req.header('Authorization')
+    if (!auth) return res.status(401).end()
+
+    const basicAuthRegex = regularExpressions.requestUtils.basicAuth
+    const matches = basicAuthRegex.exec(auth)
+
+    if (!matches) return res.status(401).end()
+
+    const entity = await Repo.checkAccessToken(matches[1])
+
+    if (!entity) {
+      return res.status(401).end()
+    }
+
+    const adminEntity = await Repo.fetchAdminToken(matches[1])
+
+    if (!adminEntity) {
+      return res.status(401).end()
+    }
+
+    req.entity = adminEntity
+
+    return next()
+  } catch (err) {
+    next(err)
+  }
+}
 
 export const authorized: RequestHandler = async (
   req: AuthenticatedRequest,

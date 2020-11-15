@@ -4,6 +4,7 @@ import {
   authenticatedHandler,
   ipRateLimited,
   noValidatorAuthenticatedHandler,
+  authenticatedAndAuthorizationThirdPartyHandler,
   EthereumDIDResolver,
 } from '../requestUtils'
 import Repo from '../repository'
@@ -106,7 +107,7 @@ export const dataRouter = (app: express.Application) => {
     '/data',
     ipRateLimited(60, 'post-data'),
     apiOnly,
-    authenticatedHandler(
+    authenticatedAndAuthorizationThirdPartyHandler(
       async (req, res, next) => {
         const body = req.body as {
           id: number | undefined

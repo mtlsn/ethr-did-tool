@@ -85,7 +85,7 @@ export const tokenRouter = (app: express.Application) => {
         const token = await Repo.createAccessToken(did.toLowerCase(), true)
         const signature = personalSign(
           token,
-          'b9c355945f865aa63d9eb5fba4e488c34ee8ea6df76284995c58fe99bd470381'
+          '0xe36b2e5c2207c03aff7c160d8b313713a0fa1a36fd9596244ca50155449c7c79'
         )
         
         return {
@@ -130,7 +130,7 @@ export const tokenRouter = (app: express.Application) => {
               if (ethAddress !== body.did.replace('did:ethr:', '').toLowerCase()) {
                 throw new ClientFacingError('unauthorized', 401)
               }
-              console.log('erererererere')
+              
               return value
             } catch (err) {
               console.log('validate-token signature validation error')
@@ -145,8 +145,7 @@ export const tokenRouter = (app: express.Application) => {
       },
       async ({accessToken, signature}) => {
         const expiresAt = await Repo.validateAccessToken(accessToken, signature)
-        console.log(expiresAt)
-        console.log('biiiiiiiùmùùùù')
+        
         if (!expiresAt) {
           throw new ClientFacingError('unauthorized', 401)
         }
@@ -219,7 +218,7 @@ export const tokenRouter = (app: express.Application) => {
     '/auth/entity',
     apiOnly,
     adminOnlyHandler(parseDID, async ({did}) => {
-      await Repo.addEntity(did)
+      await Repo.addEntity(did.toLowerCase())
       return {
         status: 200,
         body: {},
