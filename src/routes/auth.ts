@@ -36,12 +36,6 @@ export const didRouter = (app: express.Application) => {
     apiOnly,
     asyncHandler(
       async () => {
-        // const DidRegistryContract = require('ethr-did-registry')
-
-        // let networkId = 1 // Mainnet
-        // let DidReg = web3.eth.contract(DidRegistryContract.abi)
-        // return DidReg.at(DidRegistryContract.networks[networkId].address)
-
         const ethrDid = makeEthrDID.makeEthrDID('did:ethr:0xaDb95d020Ee1eFe0C1C8710bCa8A425A9DBd3FD0', 'b9c355945f865aa63d9eb5fba4e488c34ee8ea6df76284995c58fe99bd470381')
         
         const providerConfig = { rpcUrl: 'https://ropsten.infura.io/v3/91b0038d3b154f0a9b11212d29485594' } 
@@ -57,6 +51,38 @@ export const didRouter = (app: express.Application) => {
           body: {
             message: 'Did successfully created and on-chain',
             did: didReg
+          },
+        }
+      }
+    )
+  )
+}
+
+export const signatureRouter = (app: express.Application) => {
+  app.post(
+    '/auth/sign-token',
+    ipRateLimited(20, 'create'),
+    apiOnly,
+    asyncHandler(
+      async req => {
+        const body = req.body as {
+          accessToken: string
+        }
+
+        const signature = personalSign(
+          body.accessToken,
+          '0xb9c355945f865aa63d9eb5fba4e488c34ee8ea6df76284995c58fe99bd470381'
+        )
+
+        return signature
+      },
+
+      async (signature) => {
+        return {
+          status: 200,
+          body: {
+            message: 'Signature of the token',
+            signature: signature
           },
         }
       }
@@ -83,16 +109,11 @@ export const tokenRouter = (app: express.Application) => {
 
       async ({did, initialize}) => {
         const token = await Repo.createAccessToken(did.toLowerCase(), true)
-        const signature = personalSign(
-          token,
-          '0xe36b2e5c2207c03aff7c160d8b313713a0fa1a36fd9596244ca50155449c7c79'
-        )
         
         return {
           status: 200,
           body: {
-            token: token,
-            signature: signature
+            token: token
           },
         }
       }

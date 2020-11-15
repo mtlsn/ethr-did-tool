@@ -10,6 +10,7 @@ import {persistError} from './src/logger'
 import {dataRouter} from './src/routes/data'
 import {tokenRouter as authRouter} from './src/routes/auth'
 import {didRouter} from './src/routes/auth'
+import {signatureRouter} from './src/routes/auth'
 
 import {misc} from './src/routes/misc'
 import {ClientFacingError} from './src/utils'
@@ -49,6 +50,7 @@ app.use((req, res, next) => {
 authRouter(app)
 dataRouter(app)
 didRouter(app)
+signatureRouter(app)
 misc(app)
 
 if (env.pipelineStage() === PipelineStages.development) {
